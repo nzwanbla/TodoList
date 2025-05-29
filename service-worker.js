@@ -1,4 +1,4 @@
-const CACHE_NAME = "todolist-cache-v2";
+const CACHE_NAME = "todolist-cache-v1";
 const urlsToCache = [
     "./",
     "./index.html",
@@ -32,14 +32,17 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => response)
-      .catch(() => {
-        if (event.request.headers.get("accept")?.includes("text/html")) {
-          return caches.match("./offline.html");
-        }
-        return caches.match(event.request);
-      })
-  );
+    event.respondWith(
+        fetch(event.request)
+        .then(response => response)
+        .catch(() => {
+            return caches.match(event.request).then(response => {
+                // Kalau file tidak ada di cache, fallback ke offline.html untuk dokumen HTML
+                if (event.request.destination === 'document') {
+                    return caches.match("./offline.html");
+                }
+                return response;
+            });
+        })
+    );
 });

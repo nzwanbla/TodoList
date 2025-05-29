@@ -1,130 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Offline</title>
-    <style>
-        body {
-            background-image: linear-gradient(100deg, #575656, #062e3f);
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        
-        h1 {
-            margin-top: 60px;
-            color: white;
-            font-size: 2.2em;
-            letter-spacing: 1px;
-        }
-        
-        h3 {
-            color: #fff;
-        }
-        
-        p {
-            color: #333;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-        
-        #game-area {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 8px 24px rgba(60, 60, 60, 0.12);
-            border-radius: 18px;
-            padding: 32px 28px 24px 28px;
-            margin-top: 30px;
-            display: inline-block;
-            min-width: 320px;
-        }
-        
-        #game-area p {
-            margin: 12px 0;
-        }
-        
-        input[type="number"] {
-            width: 60px;
-            padding: 8px;
-            border: 1.5px solid #43c6ac;
-            border-radius: 8px;
-            font-size: 1.1em;
-            margin-right: 10px;
-            outline: none;
-            transition: border 0.2s;
-        }
-        
-        input[type="number"]:focus {
-            border: 1.5px solid #2e8b7a;
-            background: #f0fdfa;
-        }
-        
-        button {
-            background: linear-gradient(90deg, #43c6ac 60%, #191654 100%);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 22px;
-            font-size: 1em;
-            cursor: pointer;
-            margin: 8px 4px 0 0;
-            box-shadow: 0 2px 8px rgba(67, 198, 172, 0.08);
-            transition: background 0.2s, transform 0.1s;
-        }
-        
-        button:hover {
-            background: linear-gradient(90deg, #191654 60%, #43c6ac 100%);
-            transform: translateY(-2px) scale(1.04);
-        }
-        
-        #result {
-            font-weight: bold;
-            font-size: 1.15em;
-            margin-top: 16px;
-            min-height: 24px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Offline - Memory Card</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    h1 {
+      margin-top: 40px;
+    }
+
+    #game-container {
+      background: #fff;
+      color: #000;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 70px);
+      grid-gap: 12px;
+      justify-content: center;
+    }
+
+    .card {
+      width: 70px;
+      height: 70px;
+      background: #43c6ac;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8em;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+
+    .card.flipped {
+      background: #f1f1f1;
+      color: #000;
+      cursor: default;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      min-height: 24px;
+    }
+
+    #restart-btn {
+      display: none;
+      margin-top: 16px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #43c6ac;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #restart-btn:hover {
+      background: #191654;
+    }
+  </style>
 </head>
-
 <body>
-    <h1>Kamu sedang offline!</h1>
-    <h3>Coba main game ini dulu:</h3>
-    <div id="game-area">
-        <p>Tebak angka antara 1 sampai 10!</p>
-        <input type="number" id="guess" min="1" max="10" />
-        <button onclick="checkGuess()">Tebak!</button>
-        <p id="result"></p>
-        <button onclick="resetGame()">Main Lagi</button>
-    </div>
-    <script>
-        let randomNumber = Math.floor(Math.random() * 10) + 1;
-        let attempts = 0;
+  <h1>Game Memory Offline</h1>
+  <h3>Cocokkan pasangan emoji yang sama!</h3>
+  <div id="game-container"></div>
+  <div id="status"></div>
+  <button id="restart-btn" onclick="createBoard()">Main Lagi</button>
 
-        function checkGuess() {
-            const guess = parseInt(document.getElementById('guess').value);
-            attempts++;
-            if (guess === randomNumber) {
-                document.getElementById('result').textContent = `Benar! Kamu menebak dalam ${attempts} percobaan.`;
-            } else if (guess < randomNumber) {
-                document.getElementById('result').textContent = 'Terlalu kecil!';
-            } else if (guess > randomNumber) {
-                document.getElementById('result').textContent = 'Terlalu besar!';
-            } else {
-                document.getElementById('result').textContent = 'Masukkan angka yang valid!';
-            }
-        }
+  <script>
+    const emojis = ['🍎', '🚗', '🐶', '🌟', '🎵', '🎮', '✈', '🎁'];
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
 
-        function resetGame() {
-            randomNumber = Math.floor(Math.random() * 10) + 1;
-            attempts = 0;
-            document.getElementById('guess').value = '';
-            document.getElementById('result').textContent = '';
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function createBoard() {
+      const gameContainer = document.getElementById('game-container');
+      const status = document.getElementById('status');
+      const restartBtn = document.getElementById('restart-btn');
+      gameContainer.innerHTML = '';
+      status.textContent = '';
+      restartBtn.style.display = 'none';
+      matchedPairs = 0;
+      flippedCards = [];
+
+      const duplicated = [...emojis, ...emojis]; // 16 kartu
+      const shuffled = shuffle(duplicated);
+
+      cards = shuffled.map((emoji, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.emoji = emoji;
+        card.dataset.index = index;
+        card.textContent = '';
+        card.addEventListener('click', () => flipCard(card));
+        gameContainer.appendChild(card);
+        return card;
+      });
+    }
+
+    function flipCard(card) {
+      if (card.classList.contains('flipped') || flippedCards.length === 2) return;
+
+      card.classList.add('flipped');
+      card.textContent = card.dataset.emoji;
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        const [first, second] = flippedCards;
+        if (first.dataset.emoji === second.dataset.emoji) {
+          matchedPairs++;
+          flippedCards = [];
+          if (matchedPairs === emojis.length) {
+            document.getElementById('status').textContent = "Selamat! Kamu mencocokkan semuanya! 🎉";
+            document.getElementById('restart-btn').style.display = 'inline-block';
+          }
+        } else {
+          setTimeout(() => {
+            first.classList.remove('flipped');
+            second.classList.remove('flipped');
+            first.textContent = '';
+            second.textContent = '';
+            flippedCards = [];
+          }, 800);
         }
-    </script>
+      }
+    }
+
+    createBoard();
+  </script>
 </body>
-
 </html>
